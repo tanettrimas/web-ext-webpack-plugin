@@ -11,17 +11,31 @@ class WebExtWebpackPlugin {
     this.watchMode = false;
   }
 
+  _run_web_ext({ sourceDir, artifactsDir }) {
+    if (this.runner) {
+      return;
+    }
+
+    return webExt.cmd.run({ sourceDir, artifactsDir, noReload: true, }, { })
+    .then((runner) => {
+      this.runner = runner;
+      this.runner.registerCleanup(() => {
+        this.runner = null;
+      });
+    });
+  }
+
   apply(compiler) {
     const sourceDir = process.cwd();
     const artifactsDir = path.join(sourceDir, 'web-ext-artifacts');
 
-    const watchRun = async (compiler) => {
+    const watchRun = (compiler) => {
       this.watchMode = true;
     };
 
-    const afterEmit = async (compilation) => {
+    const afterEmit = (compilation) => {
       try {
-        await webExt.cmd.lint({
+        return webExt.cmd.lint({
           artifactsDir,
           boring: false,
           metadata: false,
@@ -32,29 +46,16 @@ class WebExtWebpackPlugin {
           warningsAsErrors: true,
         }, {
           shouldExitProgram: false,
-        });
+        }).then(() => {
+          if (!this.watchMode) {
+            return;
+          }
 
-        if (!this.watchMode) {
-          return;
-        }
-
-        if (this.runner) {
-          this.runner.reloadAllExtensions();
-          return;
-        }
-
-        await webExt.cmd.run({
-          sourceDir,
-          artifactsDir,
-          noReload: true,
-        }, { }).then((runner) => this.runner = runner);
-
-        if (!this.runner) {
-          return;
-        }
-
-        this.runner.registerCleanup(() => {
-          this.runner = null;
+          if (this.runner) {
+            this.runner.reloadAllExtensions();
+            return;
+          }
+          return this._run_web_ext({ sourceDir, artifactsDir });
         });
       } catch (err) {
         console.log(err);
