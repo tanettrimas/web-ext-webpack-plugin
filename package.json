@@ -17,13 +17,13 @@
     "type": "git",
     "url": "git+https://github.com/hiikezoe/web-ext-webpack-plugin.git"
   },
-  "author": "Hiroyuki Ikezoe",
+  "author": "Tanet Trimas",
   "license": "MPL-2.0",
   "bugs": {
     "url": "https://github.com/hiikezoe/web-ext-webpack-plugin/issues"
   },
   "homepage": "https://github.com/hiikezoe/web-ext-webpack-plugin#readme",
   "dependencies": {
-    "web-ext": "2.7.0"
+    "web-ext": "^4.2.0"
   }
 }
